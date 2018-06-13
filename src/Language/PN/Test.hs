@@ -11,10 +11,8 @@ printTest
   = do
   let pn = buildPN testPN
   --let pn = buildPN thesisPN
-  i <- visualizationNum
-  visualizePN pn
-  visualizePN (optimizePN pn)
-  openVisualizations i (i+2)
+  visualizePN pn "pnTest-unoptimized"
+  visualizePN (optimizePN pn) "pnTest-optimized"
 
 thesisPN
   = do

@@ -3,7 +3,6 @@ module Language.PN.EDSL (
     PNBuilder,
     transitionTo,
     transition,
-    newPlace_,
     continue,
     choice,
     choices,
@@ -188,8 +187,6 @@ data Pointer = forall a. Pointer_ a => P a
 
 label :: String -> Pointer
 label = P
-
-newPlace_ = NewPlace
 
 instance Pointer_ Pointer where
   unpoint Tail     = st_tail <$> get

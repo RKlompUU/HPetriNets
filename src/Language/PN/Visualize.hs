@@ -17,56 +17,20 @@ import qualified Data.Map.Internal.Debug as D
 import qualified Data.Map.Lazy as M
 
 
-dir = "../visualize"
-
--- Up to but not including toI
-openVisualizations :: Int -> Int -> IO ()
-openVisualizations fromI toI | fromI >= toI = return ()
-openVisualizations fromI toI
-  = do
-  let targetName = dir ++ "/pn" ++ show fromI
-  --readProcess "chrome" ["--incognito", targetName ++ ".svg"] ""
-  callCommand $ "firefox " ++ targetName ++ ".svg & > /dev/null"
-      {-  Async call:
-  createProcess (CreateProcess {cmdspec = ShellCommand ("chrome --incognito " ++ targetName ++ ".svg"),
-                                cwd= Nothing,
-                                env =Nothing,
-                                std_in = NoStream,
-                                std_out = NoStream,
-                                std_err = NoStream,
-                                close_fds = True,
-                                create_group = True,
-                                create_new_console = False,
-                                delegate_ctlc = True,
-                                detach_console = True,
-                                new_session = True,
-                                child_group = Nothing,
-                                child_user = Nothing
-                                })
-  threadDelay (1000*200)
-  -}
-  openVisualizations (fromI + 1) toI
-
-compileDot :: String -> IO ()
-compileDot targetName
+dot2svg :: FilePath -> IO ()
+dot2svg targetName
   = callCommand $ "dot -Tsvg " ++ targetName ++ ".dot -o " ++ targetName ++ ".svg"
 
-visualizationNum :: IO Int
-visualizationNum
-  = length . filter (isSuffixOf ".dot") <$> listDirectory dir
-
-visualizePN :: Show a => PN a -> IO ()
-visualizePN pn
+visualizePN :: Show a => PN a -> FilePath -> IO ()
+visualizePN pn targetName
   = do
-  n <- visualizationNum
-  let targetName = dir ++ "/pn" ++ show n
-      graphName = ""
+  let graphName = ""
       dotCode = dotHeader graphName ++
                 concatMap (\p -> dotPlace pn p (show p)) (pn_places pn) ++
                 concatMap dotTransition (pn_transitions pn) ++
                 dotFooter
   writeFile (targetName ++ ".dot") dotCode
-  compileDot targetName
+  dot2svg targetName
 
 {-
 visualizePNConfs :: PNSLConf -> [Action] -> IO ()

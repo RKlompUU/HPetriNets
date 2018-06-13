@@ -3,7 +3,7 @@
 
 name:                HPetriNets
 version:             0.1.0.0
-synopsis:            EDSL for constructing Petri Nets
+synopsis:            An EDSL for constructing Petri Nets
 -- description:
 homepage:            https://git.science.uu.nl:r.klomp/HPetriNets
 license:             BSD3
