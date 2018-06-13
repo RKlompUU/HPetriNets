@@ -12,11 +12,14 @@ main :: IO ()
 main = do
   printTest "tests/genviz/testPN" testPN
   printTest "tests/genviz/thesisPN" thesisPN
+  printTest "tests/genviz/wsPN" wsPNBuilder
 
   checkFilesEqual "tests/referenceResults/testPN-optimized.dot"
                   "tests/genviz/testPN-optimized.dot"
   checkFilesEqual "tests/referenceResults/thesisPN-optimized.dot"
                   "tests/genviz/thesisPN-optimized.dot"
+  checkFilesEqual "tests/referenceResults/wsPN-optimized.dot"
+                  "tests/genviz/wsPN-optimized.dot"
 
 checkFilesEqual :: FilePath -> FilePath -> IO ()
 checkFilesEqual fA fB = do
@@ -83,3 +86,53 @@ p1 = do
             ,transition "CsC!"
             ,transition "CsD!"]
   transition "LeaveLoop!"
+
+
+wsPNBuilder = do
+  markInit
+  transition "ClientOpenHandshake?"
+  transition "ServerOpenHandshake!"
+  parallel [cli2serv,
+            serv2cli]
+           Nothing
+  markExit
+
+cycleEnd = "400"
+
+cli2serv = do
+  parallel [cliPing,
+            cliData]
+           (Just $ "MaskedClose? `cycle > " ++ cycleEnd ++ "`")
+
+serv2cli = do
+  parallel [servPing,
+            servData]
+           (Just "Close!")
+
+cliData = do
+  loop $ do
+    catch Nothing (label "closeCliData") $ do
+      continue "MaskedMessageFrame?"
+      transition "MaskedMessageStartFrame?"
+      continue "MaskedContinuationFrame?"
+      transition "MaskedMessageEndFrame?"
+  transitionTo' Nothing (label "closeCliData")
+
+servData = do
+  loop $ do
+    catch Nothing (label "closeServData") $ do
+      continue "MessageFrame!"
+      transition "MessageStartFrame!"
+      continue "ContinuationFrame!"
+      transition "MessageEndFrame!"
+  transitionTo' Nothing (label "closeServData")
+
+cliPing = do
+  loop $ do
+    transition ("MaskedPing? `cycle <= " ++ cycleEnd ++ "` {payload = msg.frame.payload_data}")
+    transition "Pong! [payload == msg.frame.payload_data]"
+
+servPing = do
+  loop $ do
+    transition "Ping! {payload = msg.frame.payload_data}"
+    transition "MaskedPong? [payload == msg.frame.payload_data]"

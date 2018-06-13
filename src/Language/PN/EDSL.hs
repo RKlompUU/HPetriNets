@@ -2,6 +2,7 @@
 module Language.PN.EDSL (
     PNBuilder,
     transitionTo,
+    transitionTo',
     transition,
     continue,
     choice,
