@@ -190,9 +190,13 @@ label :: String -> Pointer
 label = P
 
 instance Pointer_ Pointer where
-  unpoint Tail     = st_tail <$> get
-  unpoint NewPlace = newPlace >>= unpoint
   unpoint (P p)    = unpoint p
+  unpoint Tail     = st_tail <$> get
+  unpoint NewPlace = do
+    st <- get
+    let id = st_pCounter st
+    put $ st {st_pCounter = id + 1}
+    return id
 
 evalPoint :: Pointer -> PNBuilder evTy Pointer
 evalPoint p = P <$> unpoint p
@@ -318,13 +322,6 @@ newLabel = do
   let l = st_lCounter st
   put $ st {st_lCounter = l-1}
   return (show l)
-
-newPlace :: PNBuilder evTy Pointer
-newPlace = do
-  st <- get
-  let id = st_pCounter st
-  put $ st {st_pCounter = id + 1}
-  return (P id)
 
 setTail :: Pointer -> PNBuilder evTy ()
 setTail p
